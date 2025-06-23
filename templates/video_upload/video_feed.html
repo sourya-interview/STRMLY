@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Feed{% endblock %}
+
+{% block head %}
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background-color: #eef2f7;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  header {
+    background-color: #1f2937;
+    padding: 15px 30px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  header nav a {
+    color: #ddd;
+    margin-left: 15px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  header nav a:hover {
+    color: #fff;
+  }
+
+  .container {
+    flex: 1;
+    padding: 30px 40px;
+  }
+
+  .feed-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 30px;
+  }
+
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+  }
+
+  .video-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .video-card video {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: cover;
+    background: #000;
+  }
+
+  .video-info {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .video-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #111827;
+  }
+
+  .video-meta {
+    font-size: 13px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  .video-description {
+    font-size: 13px;
+    color: #444;
+    margin-top: 6px;
+  }
+
+  footer {
+    background-color: #1f2937;
+    color: #ccc;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+  }
+</style>
+{% endblock %}
+
+{% block header %}
+<div><strong>STRMLY</strong></div>
+<nav>
+  <a href="{% url 'VidUpload' %}">Upload</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="feed-title">Latest Uploads</div>
+  <div class="video-grid">
+    {% for video in videos %}
+    <div class="video-card">
+      <video controls>
+        <source src="{{ video.video_url }}" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <div class="video-info">
+        <div class="video-title">{{ video.title }}</div>
+        <div class="video-description">{{ video.description }}</div>
+        <div class="video-meta">By {{ video.uploaded_by.name|default:"Unknown" }} · {{ video.uploadedat|date:"M d, Y" }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

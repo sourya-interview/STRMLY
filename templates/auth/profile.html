@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block head %}
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background-color: #eef2f7;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  header {
+    background-color: #1f2937;
+    padding: 15px 30px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  header nav a {
+    color: #ddd;
+    margin-left: 15px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  header nav a:hover {
+    color: #fff;
+  }
+
+  .container {
+    flex: 1;
+    padding: 40px 60px;
+  }
+
+  .welcome {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #1f2937;
+    text-align: center;
+  }
+
+  .profile-box {
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    margin-bottom: 40px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    row-gap: 20px;
+    column-gap: 10px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .profile-label {
+    font-weight: bold;
+    color: #333;
+    text-align: right;
+    padding-right: 15px;
+  }
+
+  .profile-value {
+    color: #555;
+    font-family: monospace;
+    overflow-wrap: break-word;
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #1f2937;
+  }
+
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+  }
+
+  .video-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .video-card video {
+    width: 100%;
+    height: auto;
+    max-height: 180px;
+    object-fit: cover;
+    background: #000;
+  }
+
+  .video-info {
+    padding: 10px 15px;
+  }
+
+  .video-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .video-meta {
+    font-size: 12px;
+    color: #777;
+  }
+
+  footer {
+    background-color: #1f2937;
+    color: #ccc;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+  }
+</style>
+{% endblock %}
+
+{% block header %}
+<div><strong>STRMLY</strong></div>
+<nav>
+  <a href="#" id = "logout-link">Logout</a>
+  <a href="{% url 'VidUpload' %}">Upload</a>
+  <a href="#">Feed</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="welcome" id="welcome-text">Welcome, User</div>
+
+  <div class="profile-box" id="profile-details">
+    <div class="profile-label">Name:</div>
+    <div class="profile-value" id="name">Loading...</div>
+
+    <div class="profile-label">Email:</div>
+    <div class="profile-value" id="email">Loading...</div>
+
+    <div class="profile-label">Password:</div>
+    <div class="profile-value">********</div>
+
+    <div class="profile-label">Joined:</div>
+    <div class="profile-value" id="created-at">Loading...</div>
+  </div>
+
+  <div class="section-title">Your Videos</div>
+  <div class="video-grid" id="user-videos">
+    <p>Loading...</p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const logoutLink = document.getElementById("logout-link");
+    if (logoutLink) {
+      logoutLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        localStorage.removeItem("token"); // 🔒 Clear the token
+        window.location.href = "/login";  // 🔁 Redirect to login
+      });
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", async function () {
+    const token = localStorage.getItem("token");
+    const welcomeText = document.getElementById("welcome-text");
+    const nameField = document.getElementById("name");
+    const emailField = document.getElementById("email");
+    const createdAtField = document.getElementById("created-at");
+    const videoGrid = document.getElementById("user-videos");
+    
+    console.log("Token:", token);
+
+    if (!token) {
+      welcomeText.innerText = "Unauthorized";
+      document.getElementById("profile-details").style.display = "none";
+      return;
+    }
+
+    try {
+      const response = await fetch("/profile/details", {
+        method: "GET",
+        headers: {
+          "Authorization": "Bearer " + token
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.user) {
+        welcomeText.innerText = `Welcome, ${data.user.name}`;
+        nameField.innerText = data.user.name;
+        emailField.innerText = data.user.email;
+        createdAtField.innerText = new Date(data.user.created_at).toLocaleDateString("en-IN", {
+          year: 'numeric', month: 'short', day: 'numeric'
+        });
+
+        // Load user videos
+        videoGrid.innerHTML = "";
+        const videos = data.videos || [];
+
+        if (videos.length > 0) {
+          videos.forEach(video => {
+            const card = document.createElement("div");
+            card.className = "video-card";
+            card.innerHTML = `
+              <video controls>
+                <source src="${video.video_url}" type="video/mp4" />
+              </video>
+              <div class="video-info">
+                <div class="video-title">${video.title}</div>
+                <div class="video-meta">${new Date(video.uploaded_at).toLocaleDateString()}</div>
+              </div>
+            `;
+            videoGrid.appendChild(card);
+          });
+        } else {
+          videoGrid.innerHTML = "<p>You haven’t uploaded any videos yet.</p>";
+        }
+      } else {
+        welcomeText.innerText = "Unauthorized";
+        document.getElementById("profile-details").style.display = "none";
+        videoGrid.innerHTML = "";
+      }
+    } catch (err) {
+      console.error(err);
+      welcomeText.innerText = "Unauthorized";
+      document.getElementById("profile-details").style.display = "none";
+      videoGrid.innerHTML = "<p>Error loading videos.</p>";
+    }
+  });
+</script>
+{% endblock %}
