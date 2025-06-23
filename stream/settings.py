@@ -31,7 +31,7 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -61,7 +61,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'stream.urls'
 
-CORS_ALLOW_ALL_ORIGINS = True  # Change to True if testing from localhost:3000 etc.
+CORS_ALLOW_ALL_ORIGINS = True  
 
 
 TEMPLATES = [
